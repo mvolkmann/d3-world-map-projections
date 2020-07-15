@@ -1,6 +1,7 @@
 /* global topojson: false */
 import {panZoomSetup} from './pan-zoom.js';
 
+const INCLUDE_GRATICULE = false;
 const SVG_HEIGHT = 500;
 const SVG_WIDTH = 960;
 
@@ -26,8 +27,8 @@ const projectionMap = {
   Patterson: d3.geoPatterson
 };
 
-const defaultProjectionName = 'Natural Earth 1';
-//const defaultProjectionName = 'Orthographic';
+//const defaultProjectionName = 'Natural Earth 1';
+const defaultProjectionName = 'Orthographic';
 
 // Add event handling to select.
 const select = d3
@@ -69,31 +70,6 @@ let currentCountry,
 
 svg.append('path').attr('class', 'sphere');
 
-function setProjection(projectionName) {
-  const projectionFn = projectionMap[projectionName];
-  projection = projectionFn();
-
-  const isOrthographic = projectionName === 'Orthographic';
-  if (!isOrthographic && rotating) toggleRotate();
-
-  rotateBtn.style('display', isOrthographic ? 'inline' : 'none');
-
-  pathGenerator = d3.geoPath().projection(projection);
-
-  /*
-  svg
-    .selectAll('.graticule')
-    .data(d3.geoGraticule().lines())
-    .enter()
-    .append('path')
-    .attr('class', 'graticule')
-    .attr('d', pathGenerator);
-    */
-
-  svg.select('.sphere').attr('d', pathGenerator(sphere));
-  svg.selectAll('.country').attr('d', pathGenerator);
-}
-
 function hideTooltip() {
   tooltip.style('opacity', 0);
 }
@@ -126,6 +102,24 @@ function pathMoved(d) {
   tooltip.style('opacity', 0.7);
 }
 
+function setProjection(projectionName) {
+  const projectionFn = projectionMap[projectionName];
+  projection = projectionFn();
+
+  const isOrthographic = projectionName === 'Orthographic';
+  if (!isOrthographic && rotating) toggleRotate();
+
+  rotateBtn.style('display', isOrthographic ? 'inline' : 'none');
+
+  pathGenerator = d3.geoPath().projection(projection);
+
+  if (INCLUDE_GRATICULE) {
+    svg.selectAll('.graticule').attr('d', pathGenerator);
+  }
+  svg.select('.sphere').attr('d', pathGenerator(sphere));
+  svg.selectAll('.country').attr('d', pathGenerator);
+}
+
 function toggleRotate() {
   rotating = !rotating;
   rotateBtn.text(rotating ? 'Stop Rotating' : 'Start Rotating');
@@ -141,6 +135,9 @@ function toggleRotate() {
       projection.rotate([nextAngle, 0]);
       lastAngle = nextAngle;
       pathGenerator = d3.geoPath().projection(projection);
+      if (INCLUDE_GRATICULE) {
+        svg.selectAll('.graticule').attr('d', pathGenerator);
+      }
       svg.selectAll('.country').attr('d', pathGenerator);
     });
   } else {
@@ -161,8 +158,17 @@ export async function createMap() {
     idToNameMap[feature.id] = feature.properties.name;
   }
 
-  // Convert GeoJSON to SVG.
-  const paths = svg
+  if (INCLUDE_GRATICULE) {
+    svg
+      .selectAll('.graticule')
+      .data(d3.geoGraticule().lines())
+      .enter()
+      .append('path')
+      .attr('class', 'graticule')
+      .attr('d', pathGenerator);
+  }
+
+  svg
     .selectAll('path')
     .data(countries.features)
     .enter()

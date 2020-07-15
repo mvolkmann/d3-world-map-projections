@@ -1,7 +1,11 @@
 /* global topojson: false */
 import {panZoomSetup} from './pan-zoom.js';
 
+//TODO: When graticule (grid lines) is rendered, it only works for the initial projection.
+//TODO: When a different projection is selected, the graticule disappears.
+//TODO: When rotating the orthographic projection, the graticule disappears.
 const INCLUDE_GRATICULE = false;
+
 const SVG_HEIGHT = 500;
 const SVG_WIDTH = 960;
 

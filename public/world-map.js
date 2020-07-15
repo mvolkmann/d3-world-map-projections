@@ -25,8 +25,9 @@ const projectionMap = {
   Orthographic: d3.geoOrthographic,
   Patterson: d3.geoPatterson
 };
-//const defaultProjection = 'Natural Earth 1';
-const defaultProjectionName = 'Orthographic';
+
+const defaultProjectionName = 'Natural Earth 1';
+//const defaultProjectionName = 'Orthographic';
 
 // Add event handling to select.
 const select = d3
@@ -57,14 +58,10 @@ const svg = d3
   */
 //panZoomSetup('map', svg.attr('width'), svg.attr('height'));
 
-const graticule = d3.geoGraticule();
-
-const grid = graticule();
 const sphere = {type: 'Sphere'};
 
 let currentCountry,
   lastAngle = 0,
-  path,
   pathGenerator,
   projection,
   rotating,
@@ -77,20 +74,22 @@ function setProjection(projectionName) {
   projection = projectionFn();
 
   const isOrthographic = projectionName === 'Orthographic';
-  if (isOrthographic) {
-    projection
-      .scale(SVG_HEIGHT / 2.1)
-      .translate([SVG_WIDTH / 2, SVG_HEIGHT / 2])
-      .clipAngle(90)
-      .precision(0.5);
-    path = d3.geoPath().projection(projection);
-  } else if (rotating) {
-    toggleRotate();
-  }
+  if (!isOrthographic && rotating) toggleRotate();
 
   rotateBtn.style('display', isOrthographic ? 'inline' : 'none');
 
   pathGenerator = d3.geoPath().projection(projection);
+
+  /*
+  svg
+    .selectAll('.graticule')
+    .data(d3.geoGraticule().lines())
+    .enter()
+    .append('path')
+    .attr('class', 'graticule')
+    .attr('d', pathGenerator);
+    */
+
   svg.select('.sphere').attr('d', pathGenerator(sphere));
   svg.selectAll('.country').attr('d', pathGenerator);
 }

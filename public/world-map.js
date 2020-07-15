@@ -60,12 +60,6 @@ const svg = d3
 
 const graticule = d3.geoGraticule();
 
-const canvas = d3
-  .select('canvas')
-  .attr('width', SVG_WIDTH)
-  .attr('height', SVG_HEIGHT);
-const context = canvas.node().getContext('2d');
-
 const grid = graticule();
 const sphere = {type: 'Sphere'};
 
@@ -84,9 +78,8 @@ function setProjection(projectionName) {
       .translate([SVG_WIDTH / 2, SVG_HEIGHT / 2])
       .clipAngle(90)
       .precision(0.5);
-    path = d3.geoPath().projection(projection).context(context);
+    path = d3.geoPath().projection(projection);
   } else {
-    canvas.style('display', 'none');
     if (timer) timer.stop();
   }
 
@@ -131,42 +124,14 @@ function pathMoved(d) {
 
 function rotate() {
   rotateBtn.style('display', 'none');
-  canvas.style('display', 'block');
 
   const start = Date.now();
+
   timer = d3.timer(() => {
-    projection.rotate([ROTATION_SPEED * (Date.now() - start), -15]);
-
-    context.clearRect(0, 0, SVG_WIDTH, SVG_HEIGHT);
-
-    context.beginPath();
-    path(sphere);
-    context.lineWidth = 3;
-    context.strokeStyle = '#000';
-    context.stroke();
-
-    context.beginPath();
-    path(sphere);
-    context.fillStyle = '#fff';
-    context.fill();
-
-    context.beginPath();
-    path(land);
-    context.fillStyle = '#222';
-    context.fill();
-
-    context.beginPath();
-    path(borders);
-    context.lineWidth = 0.5;
-    context.strokeStyle = '#fff';
-    context.stroke();
-
-    context.beginPath();
-    path(grid);
-    context.lineWidth = 0.5;
-    context.strokeStyle = 'rgba(119,119,119,.5)';
-    context.stroke();
-  }, 20);
+    projection.rotate([ROTATION_SPEED * (Date.now() - start), 0]);
+    pathGenerator = d3.geoPath().projection(projection);
+    svg.selectAll('.country').attr('d', pathGenerator);
+  });
 }
 
 export async function createMap() {

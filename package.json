@@ -1,0 +1,19 @@
+{
+  "name": "d3-world-map",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "d3-geo-projection": "^2.9.0",
+    "topojson": "^3.0.2",
+    "world-atlas": "^2.0.2"
+  },
+  "devDependencies": {
+    "express": "^4.17.1"
+  }
+}

@@ -1,6 +1,7 @@
 /* global topojson: false */
 import {panZoomSetup} from './pan-zoom.js';
 
+const ROTATE_DELTA = 1;
 const SVG_HEIGHT = 500;
 const SVG_WIDTH = 960;
 
@@ -40,7 +41,7 @@ for (const projectionName of Object.keys(projectionMap)) {
 }
 
 // Add event handling to rotate button.
-const rotateBtn = d3.select('#rotate-btn').on('click', toggleRotate);
+const rotateBtn = d3.select('#rotate-btn').on('click', rotate);
 
 const svg = d3
   .select('svg')
@@ -63,10 +64,10 @@ const grid = graticule();
 const sphere = {type: 'Sphere'};
 
 let currentCountry,
-  lastAngle = 0,
   path,
   pathGenerator,
   projection,
+  rotateAngle = 0,
   rotating,
   timer;
 
@@ -85,7 +86,8 @@ function setProjection(projectionName) {
       .precision(0.5);
     path = d3.geoPath().projection(projection);
   } else if (rotating) {
-    toggleRotate();
+    timer.stop();
+    rotateBtn.text('Start Rotating');
   }
 
   rotateBtn.style('display', isOrthographic ? 'inline' : 'none');
@@ -127,22 +129,16 @@ function pathMoved(d) {
   tooltip.style('opacity', 0.7);
 }
 
-function toggleRotate() {
+function rotate() {
   rotating = !rotating;
   rotateBtn.text(rotating ? 'Stop Rotating' : 'Start Rotating');
 
   if (rotating) {
-    const startAngle = lastAngle;
-    projection.rotate([startAngle, 0]);
-
-    const start = Date.now();
-
     timer = d3.timer(() => {
-      const nextAngle = startAngle + (Date.now() - start) / 100;
-      projection.rotate([nextAngle, 0]);
-      lastAngle = nextAngle;
+      rotateAngle += ROTATE_DELTA;
+      projection.rotate([rotateAngle, 0]);
       pathGenerator = d3.geoPath().projection(projection);
-      svg.selectAll('.country').attr('d', pathGenerator);
+      svg.selectAll('.country').transition().attrTween('d', pathGenerator);
     });
   } else {
     timer.stop();
